@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Powercard Service powercard(uuid) should return a powercard with exising balance for exising powercard in marsapi 1`] = `
+Powercard {
+  "attractionChips": 0,
+  "cardNumber": "unexisting in mars api",
+  "cardType": "POWER",
+  "country": "USA",
+  "easyRechargeEnabled": false,
+  "easyRechargeSent": false,
+  "gameChips": 0,
+  "id": 2,
+  "isPhysical": true,
+  "isRegisteredReward": false,
+  "pointsToNextReward": 0,
+  "rewardChips": 0,
+  "rewardPoints": 0,
+  "status": "OPEN",
+  "tickets": 0,
+  "uuid": "test2",
+  "videoChips": 0,
+}
+`;
+
+exports[`Powercard Service powercard(uuid) should return a powercard with exising balance for exising powercard(1000000606) in marsapi 1`] = `
+Powercard {
+  "attractionChips": 0,
+  "cardEncoding": "%S3JOPNM3V2MF?",
+  "cardNumber": "1000000606",
+  "cardType": "POWER",
+  "country": "USA",
+  "easyRechargeEnabled": false,
+  "easyRechargeSent": false,
+  "gameChips": 1590,
+  "id": 1,
+  "isPhysical": true,
+  "isRegisteredReward": false,
+  "pointsToNextReward": 76,
+  "rewardChips": 0,
+  "rewardPoints": 124,
+  "status": "OPEN",
+  "tickets": 0,
+  "uuid": "test",
+  "videoChips": 0,
+}
+`;

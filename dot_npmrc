@@ -1,0 +1,4 @@
+scripts-prepend-node-path=true
+scope=open-commerce
+@open-commerce:registry=https://registry.npmjs.org/
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}

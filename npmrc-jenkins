@@ -1,0 +1,7 @@
+scope=open-commerce
+always-auth=true
+strict-ssl=false
+@stuzo:registry=https://registry.npmjs.org
+@open-commerce:registry=https://registry.npmjs.org
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+registry=http://nexus.ocp.stuzo.net:8081/repository/ocp-npm-all/

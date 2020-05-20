@@ -1,0 +1,172 @@
+{
+  "name": "open-commerce-powercard",
+  "version": "0.0.0",
+  "description": "BE WIP code for DB power card functionality",
+  "author": "Jim Smiley for Stuzo LLC.",
+  "license": "All rights reserved",
+  "private": true,
+  "scripts": {
+    "build": "util/generate-version.sh; npm run lint && tsc -p tsconfig.build.json && npm run build:email-templates",
+    "build:email-templates": "cp src/modules/powercard/*.html dist/modules/powercard",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "start": "ts-node -r tsconfig-paths/register src/main.ts",
+    "start:dev": "nodemon",
+    "start:watch": "nodemon -e ts -w ./src -x npm run start",
+    "start:debug": "nodemon --config nodemon-debug.json",
+    "start:debug-docker": "node --inspect=0.0.0.0 -r ts-node/register -r tsconfig-paths/register src/main.ts",
+    "start:prod": "node dist/main.js",
+    "start:pm2": "./node_modules/.bin/pm2 -f --no-daemon start dist/main.js",
+    "lint": "tslint -p tsconfig.json -c tslint.json",
+    "precommit": "lint-staged",
+    "test": "TZ=UTC jest --coverage",
+    "test:powercard": "jest -t 'powercard.service'",
+    "test:watch": "TZ=UTC jest --watch",
+    "test:cov": "TZ=UTC jest --coverage",
+    "test:ci": "TZ=UTC jest --testPathIgnorePatterns e2e-spec.ts --coverage --silent",
+    "test:debug": "TZ=UTC node --inspect -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "TZ=UTC jest --coverage --silent --config ./test/jest-e2e.json  --setupFiles ./test/setupFile.js --setupTestFrameworkScriptFile ./test/setupTestFrameworkScriptFile.js --runInBand --detectOpenHandles --forceExit",
+    "test:e2e:not-silent": "TZ=UTC jest --config ./test/jest-e2e.json  --setupFiles ./test/setupFile.js --setupTestFrameworkScriptFile ./test/setupTestFrameworkScriptFile.js --runInBand --detectOpenHandles",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "fix-birthdays": "ts-node src/fix-missing-birthdates-and-auto-add-reward-members.ts",
+    "seed:locations": "node --inspect -r ts-node/register -r tsconfig-paths/register util/fetch-and-persist-location-data.ts",
+    "seed:feature": "node --inspect -r ts-node/register -r tsconfig-paths/register util/seed-feature.ts"
+  },
+  "dependencies": {
+    "@godaddy/terminus": "^4.1.0",
+    "@nestjs/common": "^6.11.11",
+    "@nestjs/core": "^6.11.11",
+    "@nestjs/graphql": "^6.6.2",
+    "@nestjs/terminus": "^6.5.6",
+    "@open-commerce/data-objects": "1.0.200",
+    "@open-commerce/graphql-schema": "1.0.182",
+    "@open-commerce/internal-services-api": "1.0.88",
+    "@open-commerce/nestjs-config": "^1.0.1",
+    "@open-commerce/nestjs-database": "1.0.1",
+    "@open-commerce/nestjs-logger": "2.1.4",
+    "@open-commerce/nestjs-rabbitmq": "3.0.8",
+    "@open-commerce/nestjs-redis": "^2.0.0",
+    "@open-commerce/rollbar": "1.1.0",
+    "@open-commerce/scalar-types": "0.2.2",
+    "apollo-fetch": "^0.7.0",
+    "apollo-server-express": "^2.3.3",
+    "axios": "^0.18.1",
+    "class-transformer": "^0.2.0",
+    "class-validator": "^0.9.1",
+    "core-js": "3.0.0-beta.11",
+    "deepmerge": "^4.2.2",
+    "dotenv": "6.2.0",
+    "elastic-apm-node": "^3.3.0",
+    "fetch": "^1.1.0",
+    "geo-tz": "^5.1.0",
+    "geolib": "^2.0.24",
+    "google-libphonenumber": "^3.2.3",
+    "graphql": "^14.1.1",
+    "graphql-subscriptions": "^1.1.0",
+    "graphql-tools": "^4.0.4",
+    "highlight.js": "~9.14",
+    "lodash": "^4.17.11",
+    "moment-timezone": "^0.5.27",
+    "ordinal": "^1.0.3",
+    "pg": "7.8.0",
+    "pm2": "^3.5.1",
+    "pretty-data": "^0.40.0",
+    "reflect-metadata": "0.1.12",
+    "rimraf": "2.6.2",
+    "rollbar": "^2.8.1",
+    "rxjs": "6.2.2",
+    "typeorm": "0.2.17",
+    "typescript": "^3.5.2",
+    "us-state-codes": "^1.1.2",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^6.11.11",
+    "@open-commerce/test-utils": "0.2.3",
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.3",
+    "@types/geolib": "^2.0.23",
+    "@types/google-libphonenumber": "^7.4.17",
+    "@types/graphql": "^14.0.5",
+    "@types/jest": "^25.1.4",
+    "@types/lodash": "^4.14.144",
+    "@types/moment-timezone": "^0.5.12",
+    "@types/supertest": "^2.0.8",
+    "@types/uuid": "^7.0.0",
+    "husky": "^4.2.3",
+    "jest": "^25.1.0",
+    "jest-junit": "^10.0.0",
+    "jest-sonar-reporter": "^2.0.0",
+    "lint-staged": "^8.2.1",
+    "nodemon": "1.18.3",
+    "pgtools": "^0.3.0",
+    "prettier": "^1.14.2",
+    "supertest": "3.1.0",
+    "ts-jest": "^25.2.1",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.6.2",
+    "tsconfig-paths": "3.5.0",
+    "tslint": "^6.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0"
+  },
+  "jest": {
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "./",
+    "testMatch": [
+      "**/*-test.ts",
+      "**/*\\.spec.ts"
+    ],
+    "modulePathIgnorePatterns": [
+      "dist"
+    ],
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "coverageDirectory": "./coverage",
+    "testResultsProcessor": "jest-sonar-reporter",
+    "coverageReporters": [
+      "lcov",
+      "text",
+      "html"
+    ],
+    "testEnvironment": "node"
+  },
+  "jest-junit": {
+    "outputDirectory": "test-reports",
+    "outputName": "junit.xml"
+  },
+  "jestSonar": {
+    "reportPath": "test-reports",
+    "reportFile": "test-reporter.xml",
+    "indent": 4
+  },
+  "lint-staged": {
+    "linters": {
+      "*.{ts,js,css}": [
+        "prettier --write",
+        "git add"
+      ],
+      "*.ts": [
+        "tslint --fix",
+        "git add"
+      ]
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "nodemonConfig": {
+    "ext": "js,ts,json,graphql",
+    "exec": "npm run test:e2e"
+  }
+}

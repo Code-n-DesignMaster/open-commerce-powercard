@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+# fail the script on any errors
+set -e
+
+for f in ./test/*.e2e-spec.ts
+do
+	npm run test:e2e -- $f
+done
+

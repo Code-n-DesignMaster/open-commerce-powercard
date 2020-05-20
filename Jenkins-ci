@@ -1,0 +1,135 @@
+@Library('ocp-jenkins-library')_
+import com.stuzo.jenkins.aws.ecs
+import com.stuzo.jenkins.dnb.util
+
+def release = new ecs()
+def util = new util()
+
+pipeline {
+    agent { label 'ec2_agent' }
+
+    triggers {
+      GenericTrigger( 
+          causeString: 'Bitbucket Tag Trigger', 
+          genericVariables: [ 
+                                [defaultValue: 'NULL', key: 'TAG', regexpFilter: '', value: '.push.changes[0].new.name'], 
+                                [defaultValue: 'NULL', key: 'REPO_NAME', regexpFilter: '', value: '.repository.name'],
+                                [defaultValue: 'NULL', key: 'COMMIT', regexpFilter: '', value: '.push.changes[0].new.target.hash'],
+                                [defaultValue: 'NULL', key: 'TYPE', regexpFilter: '', value: '.push.changes[0].new.type'],
+                                [defaultValue: 'NULL', key: 'BBUSER', regexpFilter: '', value: '.push.changes[0].new.target.author.user.nickname']
+                            ], 
+           regexpFilterExpression: '^(tag)$', regexpFilterText: '$TYPE_0', token: 'fb19b3837dbc2a527c6c6491c2139d97')
+    }
+    environment { 
+                  PATH = "$PATH:/home/ubuntu/.local/bin"
+                  SERVICE = util.repoTrim("$REPO_NAME_0")
+                  ENVVAR = util.getEnv("$TAG_0")
+                  ECR_REPO = "${ENVVAR[0]}"
+                  ECR_REGION = "${ENVVAR[1]}"
+                  REGION = "${ENVVAR[2]}"
+                  AWS_CREDS = "${ENVVAR[3]}"
+                  CLUSTER = "${ENVVAR[4]}"
+                  ENVIRONMENT = "${ENVVAR[5]}"
+                  SVCURL = "${ENVVAR[6]}"
+                  VERSION = "${ENVVAR[7]}"
+                  P_ERROR = "${ENVVAR[8]}"
+                }
+    stages {
+        stage('check policy') {
+            steps{
+                script{
+                    util.checkPolicies(env.ENVVAR)
+                }
+            }
+        }
+        stage('clean workspace') {
+            steps{
+                cleanWs()
+            }
+        }
+        stage('checkout code') {
+            when {
+                environment name: 'ENVIRONMENT', value: 'dev'
+            }
+            steps {
+                checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: 'git@bitbucket.org:stuzo/$REPO_NAME_0.git', 
+                credentialsId: 'jenkins-bitbucket']], branches: [[name: 'refs/tags/$TAG_0']]],poll: false
+            }
+        }
+        stage('build service') {
+            when {
+                environment name: 'ENVIRONMENT', value: 'dev'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'NPM_TOKEN', variable: 'NPM_TOKEN')]) {
+                    sh 'mv npmrc-jenkins .npmrc'
+                    sh 'docker run -t --rm -v $(pwd):/app -w /app -e NPM_TOKEN=${NPM_TOKEN} node:10.15 npm install'
+                    sh 'docker run -t --rm -v $(pwd):/app -w /app -e NPM_TOKEN=${NPM_TOKEN} node:10.15 npm run build'
+                }
+            }
+        }
+        stage('build docker image') {
+            when {
+                environment name: 'ENVIRONMENT', value: 'dev'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'NPM_TOKEN', variable: 'NPM_TOKEN')]) {
+                    sh "docker build -t $ECR_REPO/$SERVICE:$VERSION --build-arg NPM_TOKEN=${NPM_TOKEN} -f Dockerfile ."
+                }
+            }
+        }
+        stage('push docker image') {
+            when {
+                anyOf{
+                    environment name: 'ENVIRONMENT', value: 'dev'
+                    environment name: 'ENVIRONMENT', value: 'stage'
+                    environment name: 'ENVIRONMENT', value: 'prod'
+                }
+            }
+            steps {
+                script {
+                    util.envDockerPush(env.ENVIRONMENT)
+                }
+            }
+        }
+        stage('deploy to cluster'){
+            steps {
+                script {
+                aws_region = env.REGION
+                environment = env.ENVIRONMENT
+                credentials = env.AWS_CREDS
+                cluster = env.CLUSTER
+                service = env.SERVICE
+	            // You might pick this parameter from Jenkins job
+	            docker_container_tag = env.VERSION
+                release.Deploy(
+	                    credentials, environment, cluster, service, docker_container_tag, aws_region
+	            )
+                }
+            }
+        }
+        stage('check app health'){
+            steps {
+                sh '''curl --fail -s $SVCURL/health-check
+                      if [ $? -eq 0 ]
+                        then
+                        echo "HEALTHY"
+                        exit 0
+                      else
+                        echo "NOT HEALTHY"
+                        exit 1
+                      fi'''
+            } 
+        }
+    }
+    post{
+        always{
+            script{
+            util.slackNotifyDeploy(currentBuild.currentResult)
+            }
+        }
+        success{
+            cleanWs()
+        }
+    }
+}

@@ -1,0 +1,8 @@
+dist/
+.vscode/settings.json
+node_modules/
+coverage/
+.env
+.idea/
+./**/npm-debug.log
+test_reports
